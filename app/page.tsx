@@ -7,14 +7,13 @@ const g = (domain: string) => `https://www.google.com/s2/favicons?domain=${domai
 
 const BRAND_LOGOS: Record<string, string> = {
   "현대해상": g("hi.co.kr"),
-  "삼성화재": g("samsungfire.com"),
+  "삼성화재": "/logos/samsung.png",
   "DB손해보험": g("idbins.com"),
   "KB손해보험": g("kbinsure.co.kr"),
   "메리츠화재": g("meritzfire.com"),
   "한화손해보험": g("hanwhainsurance.com"),
   "캐롯손해보험": g("carrotins.com"),
   "한화/캐롯": g("carrotins.com"),
-  "신한EZ": g("shinhanez.com"),
 };
 
 export default function Home() {
