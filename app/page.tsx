@@ -3,6 +3,17 @@ import { useEffect, useState } from "react";
 
 type Row = Record<string, string | number>;
 
+const BRAND_LOGOS: Record<string, string> = {
+  "현대해상": "https://www.hi.co.kr/favicon.ico",
+  "삼성화재": "https://www.samsungfire.com/favicon.ico",
+  "DB손해보험": "https://www.idbins.com/favicon.ico",
+  "KB손해보험": "https://www.kbinsure.co.kr/favicon.ico",
+  "메리츠화재": "https://www.meritzfire.com/favicon.ico",
+  "한화손해보험": "https://www.hanwhainsurance.com/favicon.ico",
+  "캐롯손해보험": "https://www.carrotins.com/favicon.ico",
+  "한화/캐롯": "https://www.carrotins.com/favicon.ico",
+};
+
 export default function Home() {
   const [keyword, setKeyword] = useState("운전자보험");
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -68,11 +79,29 @@ export default function Home() {
                   <td style={{ ...tdStyle, fontWeight: 700, textAlign: "center", background: rankColor(row.rank) }}>
                     {row.rank}위
                   </td>
-                  {envs.map((e) => (
-                    <td key={e} style={{ ...tdStyle, textAlign: "center", background: row[e] === "삼성화재" ? "#dbeafe" : undefined }}>
-                      {row[e] === "-" ? "-" : row[e]}
-                    </td>
-                  ))}
+                  {envs.map((e) => {
+                    const brand = row[e] as string;
+                    const logo = brand && brand !== "-" ? BRAND_LOGOS[brand] : undefined;
+                    return (
+                      <td key={e} style={{ ...tdStyle, textAlign: "center", background: brand === "삼성화재" ? "#dbeafe" : undefined }}>
+                        {brand === "-" ? "-" : (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
+                            {logo && (
+                              <img
+                                src={logo}
+                                alt=""
+                                width={16}
+                                height={16}
+                                style={{ borderRadius: 3, objectFit: "contain" }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              />
+                            )}
+                            {brand}
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
