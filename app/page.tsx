@@ -25,10 +25,10 @@ export default function Home() {
   }, [keyword]);
 
   const rankColor = (rank: string | number) => {
-    if (rank === 1) return "#22c55e";
-    if (Number(rank) <= 3) return "#86efac";
-    if (Number(rank) <= 5) return "#fde68a";
-    return "#fca5a5";
+    if (rank === 1) return "#bbf7d0";
+    if (Number(rank) <= 3) return "#dcfce7";
+    if (Number(rank) <= 5) return "#fef9c3";
+    return "#fee2e2";
   };
 
   return (
@@ -69,7 +69,7 @@ export default function Home() {
                     {row.rank}위
                   </td>
                   {envs.map((e) => (
-                    <td key={e} style={{ ...tdStyle, textAlign: "center" }}>
+                    <td key={e} style={{ ...tdStyle, textAlign: "center", background: row[e] === "삼성화재" ? "#dbeafe" : undefined }}>
                       {row[e] === "-" ? "-" : row[e]}
                     </td>
                   ))}
