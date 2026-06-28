@@ -35,17 +35,16 @@ export async function GET(request: Request) {
   const envOrder = ["PC_시크릿", "MO_시크릿", "PC_로그인", "MO_로그인"];
   const envs = envOrder.filter((e) => filtered.some((r) => r[1] === e));
 
-  // 브랜드별 크로스테이블
-  const brandSet: Record<string, boolean> = {};
-  filtered.forEach((r) => { brandSet[r[4]] = true; });
-  const brands = Object.keys(brandSet).sort();
-  const table = brands.map((brand) => {
-    const row: Record<string, string | number> = { brand };
+  // 순위별 크로스테이블 (행=순위, 열=환경, 셀=브랜드)
+  const maxRank = filtered.reduce((m, row) => Math.max(m, parseInt(row[3]) || 0), 0);
+  const table = Array.from({ length: maxRank }, (_, i) => {
+    const rank = i + 1;
+    const tableRow: Record<string, string | number> = { rank };
     envs.forEach((env) => {
-      const match = filtered.find((r) => r[4] === brand && r[1] === env);
-      row[env] = match ? parseInt(match[3]) : "-";
+      const match = filtered.find((row) => row[1] === env && parseInt(row[3]) === rank);
+      tableRow[env] = match ? match[4] : "-";
     });
-    return row;
+    return tableRow;
   });
 
   const keywordSet: Record<string, boolean> = {};

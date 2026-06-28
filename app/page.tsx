@@ -24,12 +24,10 @@ export default function Home() {
       });
   }, [keyword]);
 
-  const rankColor = (val: string | number) => {
-    if (val === "-") return "#f3f4f6";
-    const n = Number(val);
-    if (n === 1) return "#22c55e";
-    if (n <= 3) return "#86efac";
-    if (n <= 5) return "#fde68a";
+  const rankColor = (rank: string | number) => {
+    if (rank === 1) return "#22c55e";
+    if (Number(rank) <= 3) return "#86efac";
+    if (Number(rank) <= 5) return "#fde68a";
     return "#fca5a5";
   };
 
@@ -60,17 +58,19 @@ export default function Home() {
           <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 14 }}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                <th style={thStyle}>브랜드</th>
+                <th style={thStyle}>순위</th>
                 {envs.map((e) => <th key={e} style={thStyle}>{e}</th>)}
               </tr>
             </thead>
             <tbody>
               {table.map((row) => (
-                <tr key={row.brand as string}>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{row.brand}</td>
+                <tr key={row.rank as number}>
+                  <td style={{ ...tdStyle, fontWeight: 700, textAlign: "center", background: rankColor(row.rank) }}>
+                    {row.rank}위
+                  </td>
                   {envs.map((e) => (
-                    <td key={e} style={{ ...tdStyle, background: rankColor(row[e]), textAlign: "center" }}>
-                      {row[e] === "-" ? "-" : `${row[e]}위`}
+                    <td key={e} style={{ ...tdStyle, textAlign: "center" }}>
+                      {row[e] === "-" ? "-" : row[e]}
                     </td>
                   ))}
                 </tr>
@@ -81,7 +81,7 @@ export default function Home() {
       )}
 
       <p style={{ marginTop: 16, fontSize: 12, color: "#9ca3af" }}>
-        초록: 1위 / 연초록: 2-3위 / 노랑: 4-5위 / 빨강: 6위+
+        순위 색상 — 초록: 1위 / 연초록: 2-3위 / 노랑: 4-5위 / 빨강: 6위+
       </p>
     </main>
   );
