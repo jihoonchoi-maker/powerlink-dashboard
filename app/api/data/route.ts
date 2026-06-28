@@ -21,7 +21,9 @@ export async function GET(request: Request) {
   const [header, ...data] = rows;
 
   // 최신 날짜 찾기
-  const dates = [...new Set(data.map((r) => r[0]))].sort().reverse();
+  const dateSet: Record<string, boolean> = {};
+  data.forEach((r) => { dateSet[r[0]] = true; });
+  const dates = Object.keys(dateSet).sort().reverse();
   const latestDate = dates[0];
 
   // 키워드 + 최신 날짜 필터
@@ -34,7 +36,9 @@ export async function GET(request: Request) {
   const envs = envOrder.filter((e) => filtered.some((r) => r[1] === e));
 
   // 브랜드별 크로스테이블
-  const brands = [...new Set(filtered.map((r) => r[4]))].sort();
+  const brandSet: Record<string, boolean> = {};
+  filtered.forEach((r) => { brandSet[r[4]] = true; });
+  const brands = Object.keys(brandSet).sort();
   const table = brands.map((brand) => {
     const row: Record<string, string | number> = { brand };
     envs.forEach((env) => {
@@ -44,7 +48,9 @@ export async function GET(request: Request) {
     return row;
   });
 
-  const keywords = [...new Set(data.map((r) => r[2]))].sort();
+  const keywordSet: Record<string, boolean> = {};
+  data.forEach((r) => { keywordSet[r[2]] = true; });
+  const keywords = Object.keys(keywordSet).sort();
 
   return NextResponse.json({ date: latestDate, table, envs, keywords });
 }
