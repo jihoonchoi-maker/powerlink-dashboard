@@ -3,15 +3,18 @@ import { useEffect, useState } from "react";
 
 type Row = Record<string, string | number>;
 
+const g = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+
 const BRAND_LOGOS: Record<string, string> = {
-  "현대해상": "https://www.hi.co.kr/favicon.ico",
-  "삼성화재": "https://www.samsungfire.com/favicon.ico",
-  "DB손해보험": "https://www.idbins.com/favicon.ico",
-  "KB손해보험": "https://www.kbinsure.co.kr/favicon.ico",
-  "메리츠화재": "https://www.meritzfire.com/favicon.ico",
-  "한화손해보험": "https://www.hanwhainsurance.com/favicon.ico",
-  "캐롯손해보험": "https://www.carrotins.com/favicon.ico",
-  "한화/캐롯": "https://www.carrotins.com/favicon.ico",
+  "현대해상": g("hi.co.kr"),
+  "삼성화재": g("samsungfire.com"),
+  "DB손해보험": g("idbins.com"),
+  "KB손해보험": g("kbinsure.co.kr"),
+  "메리츠화재": g("meritzfire.com"),
+  "한화손해보험": g("hanwhainsurance.com"),
+  "캐롯손해보험": g("carrotins.com"),
+  "한화/캐롯": g("carrotins.com"),
+  "신한EZ": g("shinhanez.com"),
 };
 
 export default function Home() {
