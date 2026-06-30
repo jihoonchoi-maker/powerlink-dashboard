@@ -81,5 +81,5 @@ export async function GET(request: Request) {
       rank: parseInt(r[3]),
     }));
 
-  return NextResponse.json({ date: latestDate, table, envs, keywords, delta, history });
+  return NextResponse.json({ date: latestDate, table, envs, keywords, delta, history, fetchedAt: new Date().toISOString() });
 }

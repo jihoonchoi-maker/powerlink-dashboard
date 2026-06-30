@@ -30,6 +30,7 @@ export default function Home() {
   const [delta, setDelta] = useState<Record<string, Record<string, number | null>>>({});
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchedAt, setFetchedAt] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -42,6 +43,10 @@ export default function Home() {
         setKeywords(d.keywords);
         setDelta(d.delta ?? {});
         setHistory(d.history ?? []);
+        if (d.fetchedAt) {
+          const dt = new Date(d.fetchedAt);
+          setFetchedAt(dt.toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false }));
+        }
         setLoading(false);
       });
   }, [keyword]);
@@ -89,19 +94,34 @@ export default function Home() {
           <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 6 }}>
             네이버 파워링크 순위 모니터링
           </h1>
-          {date && (
-            <span style={{
-              display: "inline-block",
-              background: "#f1f5f9",
-              color: "#64748b",
-              fontSize: 12,
-              fontWeight: 500,
-              padding: "3px 10px",
-              borderRadius: 20,
-            }}>
-              기준일 {date}
-            </span>
-          )}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {date && (
+              <span style={{
+                display: "inline-block",
+                background: "#f1f5f9",
+                color: "#64748b",
+                fontSize: 12,
+                fontWeight: 500,
+                padding: "3px 10px",
+                borderRadius: 20,
+              }}>
+                기준일 {date}
+              </span>
+            )}
+            {fetchedAt && (
+              <span style={{
+                display: "inline-block",
+                background: "#f1f5f9",
+                color: "#94a3b8",
+                fontSize: 12,
+                fontWeight: 400,
+                padding: "3px 10px",
+                borderRadius: 20,
+              }}>
+                업데이트 {fetchedAt}
+              </span>
+            )}
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>키워드</label>
