@@ -108,19 +108,6 @@ export default function Home() {
                 기준일 {date}
               </span>
             )}
-            {fetchedAt && (
-              <span style={{
-                display: "inline-block",
-                background: "#f1f5f9",
-                color: "#94a3b8",
-                fontSize: 12,
-                fontWeight: 400,
-                padding: "3px 10px",
-                borderRadius: 20,
-              }}>
-                업데이트 {fetchedAt}
-              </span>
-            )}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
