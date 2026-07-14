@@ -35,16 +35,24 @@ export default function Home() {
   const [keyword, setKeyword] = useState("운전자보험");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [date, setDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [dateToTimestamps, setDateToTimestamps] = useState<Record<string, string[]>>({});
   const [envs, setEnvs] = useState<string[]>([]);
   const [table, setTable] = useState<Row[]>([]);
   const [delta, setDelta] = useState<Record<string, Record<string, number | null>>>({});
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchedAt, setFetchedAt] = useState("");
+
+  // 선택된 날짜의 타임스탬프 목록 (최신순)
+  const timesForDate = selectedDate ? (dateToTimestamps[selectedDate] ?? []) : [];
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/data?keyword=${encodeURIComponent(keyword)}`)
+    const ts = selectedDate && selectedTime ? `${selectedDate} ${selectedTime}` : "";
+    const url = `/api/data?keyword=${encodeURIComponent(keyword)}${ts ? `&timestamp=${encodeURIComponent(ts)}` : ""}`;
+    fetch(url)
       .then((r) => r.json())
       .then((d) => {
         setDate(d.date);
@@ -53,13 +61,18 @@ export default function Home() {
         setKeywords(d.keywords);
         setDelta(d.delta ?? {});
         setHistory(d.history ?? []);
-        if (d.fetchedAt) {
-          const dt = new Date(d.fetchedAt);
-          setFetchedAt(dt.toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false }));
+        const dates: string[] = d.availableDates ?? [];
+        const dtMap: Record<string, string[]> = d.dateToTimestamps ?? {};
+        setAvailableDates(dates);
+        setDateToTimestamps(dtMap);
+        // 최초 로드 시 최신 날짜/시간으로 초기화
+        if (!selectedDate && dates.length > 0) {
+          setSelectedDate(dates[0]);
+          setSelectedTime(dtMap[dates[0]]?.[0]?.slice(11, 19) ?? "");
         }
         setLoading(false);
       });
-  }, [keyword]);
+  }, [keyword, selectedDate, selectedTime]);
 
   // 삼성화재 KPI 데이터 추출
   const kpiCards = envs.map((env) => {
@@ -104,20 +117,30 @@ export default function Home() {
           <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 6 }}>
             네이버 파워링크 순위 모니터링
           </h1>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {date && (
-              <span style={{
-                display: "inline-block",
-                background: "#f1f5f9",
-                color: "#64748b",
-                fontSize: 12,
-                fontWeight: 500,
-                padding: "3px 10px",
-                borderRadius: 20,
-              }}>
-                기준일 {date}
-              </span>
-            )}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>날짜</label>
+            <select
+              value={selectedDate}
+              onChange={(e) => {
+                const d = e.target.value;
+                setSelectedDate(d);
+                setSelectedTime(dateToTimestamps[d]?.[0]?.slice(11, 19) ?? "");
+              }}
+              style={dropdownStyle}
+            >
+              {availableDates.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>시간</label>
+            <select
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+              style={dropdownStyle}
+            >
+              {timesForDate.map((ts) => {
+                const t = ts.slice(11, 19);
+                return <option key={ts} value={t}>{t}</option>;
+              })}
+            </select>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -129,17 +152,7 @@ export default function Home() {
               setCategory(cat);
               setKeyword(CATEGORY_MAP[cat][0]);
             }}
-            style={{
-              padding: "7px 14px",
-              borderRadius: 8,
-              border: "1px solid #e2e8f0",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "#0f172a",
-              background: "#ffffff",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-              cursor: "pointer",
-            }}
+            style={dropdownStyle}
           >
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
@@ -147,17 +160,7 @@ export default function Home() {
           <select
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            style={{
-              padding: "7px 14px",
-              borderRadius: 8,
-              border: "1px solid #e2e8f0",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "#0f172a",
-              background: "#ffffff",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-              cursor: "pointer",
-            }}
+            style={dropdownStyle}
           >
             {CATEGORY_MAP[category].map((k) => <option key={k}>{k}</option>)}
           </select>
@@ -263,6 +266,18 @@ export default function Home() {
     </main>
   );
 }
+
+const dropdownStyle: React.CSSProperties = {
+  padding: "7px 14px",
+  borderRadius: 8,
+  border: "1px solid #e2e8f0",
+  fontSize: 14,
+  fontWeight: 500,
+  color: "#0f172a",
+  background: "#ffffff",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+  cursor: "pointer",
+};
 
 const thStyle: React.CSSProperties = {
   padding: "12px 16px",

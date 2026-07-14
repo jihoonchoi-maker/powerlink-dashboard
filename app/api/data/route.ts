@@ -4,6 +4,7 @@ import { google } from "googleapis";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const keyword = searchParams.get("keyword") || "운전자보험";
+  const selectedTs = searchParams.get("timestamp") ?? null; // "YYYY-MM-DD HH:00:00"
 
   const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS!);
   const auth = new google.auth.GoogleAuth({
@@ -23,30 +24,39 @@ export async function GET(request: Request) {
   // 키워드 필터
   const kwData = data.filter((r) => r[2] === keyword);
 
-  // 타임스탬프 목록 (내림차순)
-  const dateSet: Record<string, boolean> = {};
-  kwData.forEach((r) => { dateSet[r[0]] = true; });
-  const dates = Object.keys(dateSet).sort().reverse();
+  // 전체 타임스탬프 목록 (내림차순)
+  const tsSet: Record<string, boolean> = {};
+  kwData.forEach((r) => { tsSet[r[0]] = true; });
+  const allTimestamps = Object.keys(tsSet).sort().reverse();
 
-  // 캘린더 일 기준으로 최신일 / 이전일 결정
-  const daySet: Record<string, boolean> = {};
-  dates.forEach((d) => { daySet[d.slice(0, 10)] = true; });
-  const sortedDays = Object.keys(daySet).sort().reverse();
-  const latestDayKey = sortedDays[0];
-  const prevDayKey = sortedDays[1] ?? null;
+  // 날짜별 타임스탬프 목록 구성 (UI용)
+  const dateToTimestamps: Record<string, string[]> = {};
+  allTimestamps.forEach((ts) => {
+    const day = ts.slice(0, 10);
+    if (!dateToTimestamps[day]) dateToTimestamps[day] = [];
+    dateToTimestamps[day].push(ts);
+  });
+  const availableDates = Object.keys(dateToTimestamps).sort().reverse();
 
-  // 각 날짜의 마지막 타임스탬프
+  // 조회 기준 타임스탬프 결정
+  // selectedTs가 있으면 해당 타임스탬프, 없으면 최신
+  const targetTs = selectedTs && allTimestamps.includes(selectedTs)
+    ? selectedTs
+    : allTimestamps[0];
+
+  // 델타 비교용: targetTs 기준으로 이전 캘린더 날짜의 마지막 타임스탬프
+  const targetDay = targetTs.slice(0, 10);
   const latestTsPerDay: Record<string, string> = {};
-  dates.forEach((ts) => {
+  allTimestamps.forEach((ts) => {
     const day = ts.slice(0, 10);
     if (!latestTsPerDay[day] || ts > latestTsPerDay[day]) latestTsPerDay[day] = ts;
   });
-
-  const latestDate = latestTsPerDay[latestDayKey];
+  const daysBeforeTarget = availableDates.filter((d) => d < targetDay);
+  const prevDayKey = daysBeforeTarget[0] ?? null;
   const prevDate = prevDayKey ? latestTsPerDay[prevDayKey] : null;
 
-  // 최신 타임스탬프 필터
-  const filtered = kwData.filter((r) => r[0] === latestDate);
+  // 선택 타임스탬프 데이터 필터
+  const filtered = kwData.filter((r) => r[0] === targetTs);
 
   // 환경 목록
   const envOrder = ["PC_시크릿", "MO_시크릿", "PC_로그인", "MO_로그인"];
@@ -69,8 +79,7 @@ export async function GET(request: Request) {
   data.forEach((r) => { keywordSet[r[2]] = true; });
   const keywords = Object.keys(keywordSet).sort();
 
-  // 델타: 어제 대비 순위 변화
-  // delta[env][brand] = 오늘순위 - 어제순위 (양수=하락, 음수=상승, null=비교불가)
+  // 델타: 이전 날짜 대비 순위 변화
   const delta: Record<string, Record<string, number | null>> = {};
   const prevFiltered = prevDate ? kwData.filter((r) => r[0] === prevDate) : [];
   envs.forEach((env) => {
@@ -85,20 +94,9 @@ export async function GET(request: Request) {
       });
   });
 
-  // 히스토리: 최근 7 캘린더 날짜 기준 (시간별 수집 시에도 날짜 단위로 집계)
-  // 각 날짜의 마지막 타임스탬프 데이터를 사용
-  const datePartSet: Record<string, boolean> = {};
-  dates.forEach((d) => { datePartSet[d.slice(0, 10)] = true; });
-  const recent7Days = Object.keys(datePartSet).sort().reverse().slice(0, 7);
-  // 각 날짜에서 마지막 타임스탬프 선택
-  const latestPerDay: Record<string, string> = {};
-  dates.forEach((ts) => {
-    const day = ts.slice(0, 10);
-    if (recent7Days.includes(day) && (!latestPerDay[day] || ts > latestPerDay[day])) {
-      latestPerDay[day] = ts;
-    }
-  });
-  const historyTimestamps = Object.values(latestPerDay);
+  // 히스토리: targetTs 기준 최근 7 캘린더 날짜 (각 날짜 마지막 타임스탬프)
+  const recentDays = availableDates.filter((d) => d <= targetDay).slice(0, 7);
+  const historyTimestamps = recentDays.map((d) => latestTsPerDay[d]).filter(Boolean);
   const history = kwData
     .filter((r) => historyTimestamps.includes(r[0]))
     .map((r) => ({
@@ -108,5 +106,15 @@ export async function GET(request: Request) {
       rank: parseInt(r[3]),
     }));
 
-  return NextResponse.json({ date: latestDate, table, envs, keywords, delta, history, fetchedAt: new Date().toISOString() });
+  return NextResponse.json({
+    date: targetTs,
+    table,
+    envs,
+    keywords,
+    delta,
+    history,
+    availableDates,
+    dateToTimestamps,
+    fetchedAt: new Date().toISOString(),
+  });
 }
