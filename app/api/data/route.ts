@@ -70,12 +70,24 @@ export async function GET(request: Request) {
       });
   });
 
-  // 히스토리: 최근 7일치
-  const recent7 = dates.slice(0, 7);
+  // 히스토리: 최근 7 캘린더 날짜 기준 (시간별 수집 시에도 날짜 단위로 집계)
+  // 각 날짜의 마지막 타임스탬프 데이터를 사용
+  const datePartSet: Record<string, boolean> = {};
+  dates.forEach((d) => { datePartSet[d.slice(0, 10)] = true; });
+  const recent7Days = Object.keys(datePartSet).sort().reverse().slice(0, 7);
+  // 각 날짜에서 마지막 타임스탬프 선택
+  const latestPerDay: Record<string, string> = {};
+  dates.forEach((ts) => {
+    const day = ts.slice(0, 10);
+    if (recent7Days.includes(day) && (!latestPerDay[day] || ts > latestPerDay[day])) {
+      latestPerDay[day] = ts;
+    }
+  });
+  const historyTimestamps = Object.values(latestPerDay);
   const history = kwData
-    .filter((r) => recent7.includes(r[0]))
+    .filter((r) => historyTimestamps.includes(r[0]))
     .map((r) => ({
-      date: r[0] as string,
+      date: r[0].slice(0, 10) as string,
       env: r[1] as string,
       brand: r[4] as string,
       rank: parseInt(r[3]),
