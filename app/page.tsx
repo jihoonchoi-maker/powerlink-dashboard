@@ -21,7 +21,16 @@ const BRAND_LOGOS: Record<string, string> = {
 
 const OUR_BRAND = "삼성화재";
 
+const CATEGORY_MAP: Record<string, string[]> = {
+  "운전자보험":   ["운전자보험"],
+  "실비보험":     ["실비보험"],
+  "주택화재보험": ["주택화재보험"],
+  "여행자보험":   ["여행자보험", "해외여행보험", "단기여행자보험", "해외여행자보험"],
+};
+const CATEGORIES = Object.keys(CATEGORY_MAP);
+
 export default function Home() {
+  const [category, setCategory] = useState("운전자보험");
   const [keyword, setKeyword] = useState("운전자보험");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [date, setDate] = useState("");
@@ -111,10 +120,14 @@ export default function Home() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>키워드</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>보종</label>
           <select
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            value={category}
+            onChange={(e) => {
+              const cat = e.target.value;
+              setCategory(cat);
+              setKeyword(CATEGORY_MAP[cat][0]);
+            }}
             style={{
               padding: "7px 14px",
               borderRadius: 8,
@@ -127,8 +140,30 @@ export default function Home() {
               cursor: "pointer",
             }}
           >
-            {keywords.map((k) => <option key={k}>{k}</option>)}
+            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
+          {CATEGORY_MAP[category].length > 1 && (
+            <>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>키워드</label>
+              <select
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #e2e8f0",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "#0f172a",
+                  background: "#ffffff",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                  cursor: "pointer",
+                }}
+              >
+                {CATEGORY_MAP[category].map((k) => <option key={k}>{k}</option>)}
+              </select>
+            </>
+          )}
         </div>
       </div>
 
