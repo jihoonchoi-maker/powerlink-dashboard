@@ -22,10 +22,10 @@ const BRAND_LOGOS: Record<string, string> = {
 const OUR_BRAND = "삼성화재";
 
 const CATEGORY_MAP: Record<string, string[]> = {
-  "운전자보험":   ["운전자보험"],
-  "실비보험":     ["실비보험"],
-  "주택화재보험": ["주택화재보험"],
-  "여행자보험":   ["여행자보험", "해외여행보험", "단기여행자보험", "해외여행자보험"],
+  "운전자보험":     ["운전자보험"],
+  "실손의료비보험": ["실비보험"],
+  "주택화재플랜":   ["주택화재보험"],
+  "해외여행보험":   ["여행자보험", "해외여행보험", "단기여행자보험", "해외여행자보험"],
 };
 const CATEGORIES = Object.keys(CATEGORY_MAP);
 
