@@ -63,7 +63,7 @@ export default function TrendChart({ history, envs }: TrendChartProps) {
               cursor: "pointer",
             }}
           >
-            {env}
+            {env.replace("_시크릿", "").replace("_로그인", " 로그인")}
           </button>
         ))}
       </div>

@@ -20,6 +20,7 @@ const BRAND_LOGOS: Record<string, string> = {
 };
 
 const OUR_BRAND = "삼성화재";
+const fmtEnv = (env: string) => env.replace("_시크릿", "").replace("_로그인", " 로그인");
 
 const CATEGORY_MAP: Record<string, string[]> = {
   "운전자보험":     ["운전자보험"],
@@ -170,7 +171,7 @@ export default function Home() {
           {/* KPI 카드 */}
           <div style={{ display: "flex", gap: 16, marginBottom: 32, flexWrap: "wrap" }}>
             {kpiCards.map((card) => (
-              <KpiCard key={card.env} env={card.env} rank={card.rank} delta={card.delta} />
+              <KpiCard key={card.env} env={fmtEnv(card.env)} rank={card.rank} delta={card.delta} />
             ))}
           </div>
 
@@ -186,7 +187,7 @@ export default function Home() {
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
                   <th style={thStyle}>순위</th>
-                  {envs.map((e) => <th key={e} style={thStyle}>{e}</th>)}
+                  {envs.map((e) => <th key={e} style={thStyle}>{fmtEnv(e)}</th>)}
                 </tr>
               </thead>
               <tbody>
