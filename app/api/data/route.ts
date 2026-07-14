@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const rows = res.data.values || [];
   const [, ...data] = rows;
 
-  // 키워드 필터
+  // 컬럼: r[0]=timestamp r[1]=env r[2]=keyword r[3]=rank r[4]=brand r[5]=title r[6]=domain
   const kwData = data.filter((r) => r[2] === keyword);
 
   // 전체 타임스탬프 목록 (내림차순)
@@ -39,12 +39,11 @@ export async function GET(request: Request) {
   const availableDates = Object.keys(dateToTimestamps).sort().reverse();
 
   // 조회 기준 타임스탬프 결정
-  // selectedTs가 있으면 해당 타임스탬프, 없으면 최신
   const targetTs = selectedTs && allTimestamps.includes(selectedTs)
     ? selectedTs
     : allTimestamps[0];
 
-  // 델타 비교용: targetTs 기준으로 이전 캘린더 날짜의 마지막 타임스탬프
+  // 델타 비교용: 이전 캘린더 날짜의 마지막 타임스탬프
   const targetDay = targetTs.slice(0, 10);
   const latestTsPerDay: Record<string, string> = {};
   allTimestamps.forEach((ts) => {
@@ -62,14 +61,17 @@ export async function GET(request: Request) {
   const envOrder = ["PC_시크릿", "MO_시크릿", "PC_로그인", "MO_로그인"];
   const envs = envOrder.filter((e) => filtered.some((r) => r[1] === e));
 
-  // 크로스테이블 (행=순위, 열=환경, 셀=브랜드)
+  // 크로스테이블
+  // 같은 브랜드가 여러 순위에 나올 수 있으므로 brand+domain을 셀에 함께 저장
+  // tableRow[env] = brand, tableRow[env + "_dom"] = domain (도메인 식별용)
   const maxRank = filtered.reduce((m, row) => Math.max(m, parseInt(row[3]) || 0), 0);
   const table = Array.from({ length: maxRank }, (_, i) => {
     const rank = i + 1;
     const tableRow: Record<string, string | number> = { rank };
     envs.forEach((env) => {
       const match = filtered.find((row) => row[1] === env && parseInt(row[3]) === rank);
-      tableRow[env] = match ? match[4] : "-";
+      tableRow[env] = match ? (match[4] as string) : "-";
+      tableRow[env + "_dom"] = match ? (match[6] as string ?? "") : "";
     });
     return tableRow;
   });
@@ -79,7 +81,8 @@ export async function GET(request: Request) {
   data.forEach((r) => { keywordSet[r[2]] = true; });
   const keywords = Object.keys(keywordSet).sort();
 
-  // 델타: 이전 날짜 대비 순위 변화
+  // 델타: brand|domain 복합키로 이전 날짜 대비 순위 변화
+  // delta[env]["brand|domain"] = 오늘순위 - 어제순위
   const delta: Record<string, Record<string, number | null>> = {};
   const prevFiltered = prevDate ? kwData.filter((r) => r[0] === prevDate) : [];
   envs.forEach((env) => {
@@ -87,14 +90,14 @@ export async function GET(request: Request) {
     filtered
       .filter((r) => r[1] === env)
       .forEach((r) => {
-        const brand = r[4];
+        const key = `${r[4]}|${r[6] ?? ""}`;
         const todayRank = parseInt(r[3]);
-        const prevRow = prevFiltered.find((p) => p[1] === env && p[4] === brand);
-        delta[env][brand] = prevRow ? todayRank - parseInt(prevRow[3]) : null;
+        const prevRow = prevFiltered.find((p) => p[1] === env && p[4] === r[4] && (p[6] ?? "") === (r[6] ?? ""));
+        delta[env][key] = prevRow ? todayRank - parseInt(prevRow[3]) : null;
       });
   });
 
-  // 히스토리: targetTs 기준 최근 7 캘린더 날짜 (각 날짜 마지막 타임스탬프)
+  // 히스토리: targetTs 기준 최근 7 캘린더 날짜
   const recentDays = availableDates.filter((d) => d <= targetDay).slice(0, 7);
   const historyTimestamps = recentDays.map((d) => latestTsPerDay[d]).filter(Boolean);
   const history = kwData

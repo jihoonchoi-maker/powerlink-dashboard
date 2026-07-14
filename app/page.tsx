@@ -74,13 +74,12 @@ export default function Home() {
       });
   }, [keyword, selectedDate, selectedTime]);
 
-  // 삼성화재 KPI 데이터 추출
+  // 삼성화재 KPI 데이터 추출 (brand|domain 복합키로 delta 조회)
   const kpiCards = envs.map((env) => {
-    const rankRow = table.find((row) =>
-      (row[env] as string) === OUR_BRAND
-    );
+    const rankRow = table.find((row) => (row[env] as string) === OUR_BRAND);
     const rank = rankRow ? (rankRow.rank as number) : null;
-    const d = delta[env]?.[OUR_BRAND] ?? null;
+    const dom = rankRow ? (rankRow[env + "_dom"] as string ?? "") : "";
+    const d = delta[env]?.[`${OUR_BRAND}|${dom}`] ?? null;
     return { env, rank, delta: d };
   });
 
@@ -207,8 +206,10 @@ export default function Home() {
                     </td>
                     {envs.map((e) => {
                       const brand = row[e] as string;
+                      const dom = row[e + "_dom"] as string ?? "";
                       const logo = brand && brand !== "-" ? BRAND_LOGOS[brand] : undefined;
-                      const d = brand && brand !== "-" ? delta[e]?.[brand] : undefined;
+                      const deltaKey = `${brand}|${dom}`;
+                      const d = brand && brand !== "-" ? delta[e]?.[deltaKey] : undefined;
                       return (
                         <td key={e} style={{
                           ...tdStyle,
@@ -218,19 +219,24 @@ export default function Home() {
                           {brand === "-" ? (
                             <span style={{ color: "#cbd5e1" }}>-</span>
                           ) : (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
-                              {logo && (
-                                <img
-                                  src={logo}
-                                  alt=""
-                                  width={16}
-                                  height={16}
-                                  style={{ borderRadius: 3, objectFit: "contain" }}
-                                  onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
-                                />
+                            <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                {logo && (
+                                  <img
+                                    src={logo}
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                    style={{ borderRadius: 3, objectFit: "contain" }}
+                                    onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+                                  />
+                                )}
+                                <span style={{ fontWeight: brand === OUR_BRAND ? 600 : 400 }}>{brand}</span>
+                                {renderDelta(d)}
+                              </span>
+                              {dom && (
+                                <span style={{ fontSize: 10, color: "#94a3b8", letterSpacing: "0.01em" }}>{dom}</span>
                               )}
-                              <span style={{ fontWeight: brand === OUR_BRAND ? 600 : 400 }}>{brand}</span>
-                              {renderDelta(d)}
                             </span>
                           )}
                         </td>
