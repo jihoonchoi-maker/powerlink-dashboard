@@ -23,14 +23,29 @@ export async function GET(request: Request) {
   // 키워드 필터
   const kwData = data.filter((r) => r[2] === keyword);
 
-  // 날짜 목록 (내림차순)
+  // 타임스탬프 목록 (내림차순)
   const dateSet: Record<string, boolean> = {};
   kwData.forEach((r) => { dateSet[r[0]] = true; });
   const dates = Object.keys(dateSet).sort().reverse();
-  const latestDate = dates[0];
-  const prevDate = dates[1] ?? null;
 
-  // 최신 날짜 필터
+  // 캘린더 일 기준으로 최신일 / 이전일 결정
+  const daySet: Record<string, boolean> = {};
+  dates.forEach((d) => { daySet[d.slice(0, 10)] = true; });
+  const sortedDays = Object.keys(daySet).sort().reverse();
+  const latestDayKey = sortedDays[0];
+  const prevDayKey = sortedDays[1] ?? null;
+
+  // 각 날짜의 마지막 타임스탬프
+  const latestTsPerDay: Record<string, string> = {};
+  dates.forEach((ts) => {
+    const day = ts.slice(0, 10);
+    if (!latestTsPerDay[day] || ts > latestTsPerDay[day]) latestTsPerDay[day] = ts;
+  });
+
+  const latestDate = latestTsPerDay[latestDayKey];
+  const prevDate = prevDayKey ? latestTsPerDay[prevDayKey] : null;
+
+  // 최신 타임스탬프 필터
   const filtered = kwData.filter((r) => r[0] === latestDate);
 
   // 환경 목록
