@@ -142,28 +142,24 @@ export default function Home() {
           >
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
-          {CATEGORY_MAP[category].length > 1 && (
-            <>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>키워드</label>
-              <select
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                style={{
-                  padding: "7px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #e2e8f0",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: "#0f172a",
-                  background: "#ffffff",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                  cursor: "pointer",
-                }}
-              >
-                {CATEGORY_MAP[category].map((k) => <option key={k}>{k}</option>)}
-              </select>
-            </>
-          )}
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#64748b" }}>키워드</label>
+          <select
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: 8,
+              border: "1px solid #e2e8f0",
+              fontSize: 14,
+              fontWeight: 500,
+              color: "#0f172a",
+              background: "#ffffff",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              cursor: "pointer",
+            }}
+          >
+            {CATEGORY_MAP[category].map((k) => <option key={k}>{k}</option>)}
+          </select>
         </div>
       </div>
 
