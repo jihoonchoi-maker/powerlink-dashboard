@@ -22,6 +22,13 @@ const BRAND_LOGOS: Record<string, string> = {
 const OUR_BRAND = "삼성화재";
 const fmtEnv = (env: string) => env.replace("_시크릿", "").replace("_로그인", " 로그인");
 
+// 도메인 문자열에서 URL 부분만 추출 (PC는 텍스트+URL 혼합으로 들어옴)
+const extractUrl = (dom: string) => {
+  const parts = dom.split(/\s+/);
+  const url = [...parts].reverse().find((p) => p.includes("."));
+  return url ?? dom;
+};
+
 const CATEGORY_MAP: Record<string, string[]> = {
   "운전자보험":     ["운전자보험"],
   "실손의료비보험": ["실비보험", "실손보험"],
@@ -235,7 +242,7 @@ export default function Home() {
                                 {renderDelta(d)}
                               </span>
                               {dom && (
-                                <span style={{ fontSize: 10, color: "#94a3b8", letterSpacing: "0.01em" }}>{dom}</span>
+                                <span style={{ fontSize: 10, color: "#94a3b8", letterSpacing: "0.01em" }}>{extractUrl(dom)}</span>
                               )}
                             </span>
                           )}
